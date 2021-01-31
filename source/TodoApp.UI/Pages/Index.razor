@@ -1,0 +1,66 @@
+﻿@page "/"
+@using TodoApp.Core.Repositories
+@using TodoApp.Core.EntityFramework
+
+@inject ITodoRepository repository
+<h1>Lista rzeczy do zrobienia</h1>
+
+<div class="row">
+    <div class="align-content-lg-center col-md-6">
+        <div class="row">
+            <div class="col-md-8">
+                <RadzenTextBox @bind-Value=@newItemDescription Style="width: 100%"/>
+            </div>
+            <div class="col-md-4">
+                <RadzenButton Click=@(e => Add(e)) Text="Dodaj" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <RadzenCard Style="margin-top:2em">
+                    <RadzenDataList WrapItems="false" AllowPaging="false" Data="@items" TItem="TodoItem">
+                        <Template Context="item">
+                            @*<RadzenCard Style="width:300px;">*@
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <span class="todo-description">@item.Description</span>
+                                    <RadzenButton class="float-right done" Click="@(e=> MarkDone(e, item.Id))"><RadzenIcon Icon="check_circle" /></RadzenButton>
+                                </div>
+                            </div>
+                            @*</RadzenCard>*@
+                        </Template>
+                    </RadzenDataList>
+                </RadzenCard>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+                @code {
+                    private IEnumerable<TodoItem> items;
+                    private string newItemDescription;
+
+                    protected override async Task OnInitializedAsync()
+                    {
+                        items = await repository.GetAllAsync();
+                    }
+
+                    private async Task MarkDone(MouseEventArgs e, int id)
+                    {
+                        await repository.MarkDoneAsync(id);
+                        items = await repository.GetAllAsync();
+
+                        this.StateHasChanged();
+                    }
+
+                    private async Task Add(MouseEventArgs e)
+                    {
+                        await repository.AddAsync(newItemDescription);
+                        items = await repository.GetAllAsync();
+
+                        this.StateHasChanged();
+                    }
+                }
